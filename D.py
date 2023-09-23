@@ -53,6 +53,42 @@ def plot_population(population, rate, index):
     plt.show()
 
 
+def plot_economy_structure(economies, name):
+    x = range(2010, 2021)
+    left_sum = np.zeros((1, len(x))).reshape(-1)
+    right_sum = np.zeros((1, len(x))).reshape(-1)
+    flags = [0, 0, 0, 1, -1, -1, 1, -1, -1]  # left: -1, both: 0 , right: 1
+    labels = ['', '', ['农林消费部门', '第一产业'], '第二产业', '能源供应部门', '工业消费部门', '第三产业',
+              '交通消费部门', '建筑消费部门']
+    width = 0.3
+    # 画子图是为了legend显示完全
+    fig, ax = plt.subplots()
+
+    for i in range(8, 1, -1):
+        if flags[i] == -1:
+            plt.bar(np.array(x) - 0.5 * width, economies[i], width, label=labels[i], bottom=left_sum)
+            left_sum += economies[i].astype(np.float64)
+        elif flags[i] == 1:
+            plt.bar(np.array(x) + 0.5 * width, economies[i], width, label=labels[i], bottom=right_sum)
+            right_sum += economies[i].astype(np.float64)
+        else:
+            plt.bar(np.array(x) - 0.5 * width, economies[i], width, label=labels[i][0], bottom=left_sum)
+            left_sum += economies[i].astype(np.float64)
+            plt.bar(np.array(x) + 0.5 * width, economies[i], width, label=labels[i][1], bottom=right_sum)
+            right_sum += economies[i].astype(np.float64)
+
+    plt.legend(bbox_to_anchor=(1.01, 0.4), loc=3, borderaxespad=0)
+
+    plt.xlabel('年份')
+    plt.ylabel('GDP（亿元）')
+    plt.gca().xaxis.set_major_locator(plt.MultipleLocator(1))  # x轴刻度间隔设为1
+    plt.title(name)
+
+    # 通过画子图的方式，使legend显示完全，如果不用这种方法，legend放在图像外面时，legend显示不全
+    fig.subplots_adjust(right=0.75)
+    plt.show()
+
+
 # 读取能耗品种结构数据
 # 数据来自《经济与能源》71-88行
 def read_energy_consumption_variety_structure(df):
@@ -139,13 +175,14 @@ if __name__ == '__main__':
                     0)
 
     # 补充2009年DGP总量34471.70亿元
-
     pre_GDP = np.insert(population_and_GDP[1][:-1].astype(np.float64), 0, 34471.70)
     plot_population(population_and_GDP[1], (population_and_GDP[1].astype(np.float64) - pre_GDP) / pre_GDP, 1)
 
     GDP_by_person = population_and_GDP[1].astype(np.float64) / population_and_GDP[0].astype(np.float64)
     pre_GDP_by_person = np.insert(GDP_by_person[:-1], 0, 34471.70 / 7810.27)
     plot_population(GDP_by_person, (GDP_by_person - pre_GDP_by_person) / pre_GDP_by_person, 2)
+
+    plot_economy_structure(population_and_GDP, '地区生产总值结构变化趋势')
 
     energy_consumption_variety = read_energy_consumption_variety_structure(df_economy_and_energy)
     for i, consumption in enumerate(energy_consumption_variety):
