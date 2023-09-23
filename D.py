@@ -1,6 +1,9 @@
+import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+
+figure_save_path = './output'
 
 
 # 一次读取一张整表
@@ -25,7 +28,7 @@ def plot_population(population, rate, index):
     right_labels = ['常驻人口增长率（%）', 'GDP增长率（%）', '人均GDP增长率（%）']
 
     # 画柱状图
-    plt.bar(x, population, label=labels[index], alpha=0.2)
+    plt.bar(x, population, label=labels[index], color='pink')
     plt.xlabel('年份')
     plt.ylabel(left_labels[index])
     ax = plt.gca()
@@ -41,7 +44,7 @@ def plot_population(population, rate, index):
     ax2.set_ylabel(right_labels[index])
     # 设置坐标轴范围
     ax2.set_ylim([0., 2 * max(rate)])
-    plt.plot(x, rate, marker='.', label='增长率')
+    plt.plot(x, rate, marker='.', c='r', label='增长率')
     # 显示数字
     for a, b in zip(x, rate):
         plt.text(a, b, round(b, 2), ha='center', va='bottom', fontsize=8)
@@ -50,6 +53,7 @@ def plot_population(population, rate, index):
 
     plt.title(titles[index])
     plt.legend()
+    plt.savefig(os.path.join(figure_save_path, titles[index]))
     plt.show()
 
 
@@ -86,6 +90,7 @@ def plot_economy_structure(economies, name):
 
     # 通过画子图的方式，使legend显示完全，如果不用这种方法，legend放在图像外面时，legend显示不全
     fig.subplots_adjust(right=0.75)
+    plt.savefig(os.path.join(figure_save_path, name))
     plt.show()
 
 
@@ -113,6 +118,7 @@ def plot_energy_consumption_variety_structure(consumables, name):
     plt.gca().xaxis.set_major_locator(plt.MultipleLocator(1))  # x轴刻度间隔设为1
     plt.title(name)
     plt.legend()
+    plt.savefig(os.path.join(figure_save_path, name))
     plt.show()
 
 
@@ -134,10 +140,10 @@ def plot_structure_of_consumption(consumption, name):
     fig, ax = plt.subplots()
     for i in range(len(labels)):
         if consumption[i][0] >= 0:
-            plt.bar(x, consumption[i], label=labels[i], alpha=0.2, bottom=pos_sum, width=0.5)
+            plt.bar(x, consumption[i], label=labels[i], bottom=pos_sum, width=0.5)
             pos_sum += consumption[i].astype(np.float64)
         else:
-            plt.bar(x, consumption[i], label=labels[i], alpha=0.2, bottom=neg_sum, width=0.5)
+            plt.bar(x, consumption[i], label=labels[i], bottom=neg_sum, width=0.5)
             neg_sum += consumption[i].astype(np.float64)
 
     plt.legend(bbox_to_anchor=(1.01, 0.4), loc=3, borderaxespad=0)
@@ -149,6 +155,7 @@ def plot_structure_of_consumption(consumption, name):
 
     # 通过画子图的方式，使legend显示完全，如果不用这种方法，legend放在图像外面时，legend显示不全
     fig.subplots_adjust(right=0.8)
+    plt.savefig(os.path.join(figure_save_path, name))
     plt.show()
 
 
