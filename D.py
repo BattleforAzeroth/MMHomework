@@ -37,7 +37,7 @@ def plot_population(population, qoq, yoy, index):
     plt.xlabel('年份')
     plt.ylabel(left_labels[index])
     ax = plt.gca()
-    ax.set_ylim([min(0., min(population)), 1.4 * max(population)])
+    ax.set_ylim(min(0., min(population)), 1.4 * max(population))
     ax.xaxis.set_major_locator(plt.MultipleLocator(1))  # x轴刻度间隔设为1
     # 在左侧显示图例
     plt.legend(loc="upper left")
@@ -66,6 +66,8 @@ def plot_population(population, qoq, yoy, index):
     plt.show()
 
 
+# GDP结构图
+# 数据来自《经济与能源》2-10行
 def plot_economy_structure(economies, name):
     x = range(2010, 2021)
     left_sum = np.zeros((1, len(x))).reshape(-1)
@@ -100,6 +102,49 @@ def plot_economy_structure(economies, name):
     # 通过画子图的方式，使legend显示完全，如果不用这种方法，legend放在图像外面时，legend显示不全
     fig.subplots_adjust(right=0.75)
     plt.savefig(os.path.join(figure_save_path, name))
+    plt.show()
+
+
+# GDP三产业占比图（碳排放占比图）
+# 数据来自《经济与能源》2-10行
+def plot_proportion_of_industry(y, index):
+    x = range(2010, 2021)
+    titles = ['各产业GDP及占比', '各产业碳排放量及占比']
+    left_labels = ['各产业GDP（万亿）', '碳排放量（万tCO2）']
+    right_labels = ['各产业占比（%）', '各产业占比（%）']
+
+    # 画柱状图
+    width = 0.3 if index == 0 else 0.2
+    plt.bar(np.array(x) - 1.5 * width, y[0], width, label='第一产业', color='skyblue')
+    plt.bar(np.array(x) - 0.5 * width, y[1], width, label='第二产业', color='pink')
+    plt.bar(np.array(x) + 0.5 * width, y[2], width, label='第三产业', color='lightgreen')
+    if index == 1:
+        plt.bar(np.array(x) + 1.5 * width, y[3], width, label='居民生活', color='orange')
+    plt.xlabel('年份')
+    plt.ylabel(left_labels[index])
+    ax = plt.gca()
+    ax.set_ylim(min(0., np.min(y)), 1.4 * np.max(y))
+    ax.xaxis.set_major_locator(plt.MultipleLocator(1))  # x轴刻度间隔设为1
+    # 在左侧显示图例
+    plt.legend(loc="upper left")
+
+    # 画折线图
+    ax2 = plt.twinx()
+    ax2.set_ylabel(right_labels[index])
+    proportion = y / y.sum(axis=0)[np.newaxis, :]
+    # 设置坐标轴范围
+    ax2.set_ylim(min(0., 1.4 * np.min(proportion)), 2 * np.max(proportion))
+    plt.plot(x, proportion[0], marker='.', c='b', label='第一产业占比')
+    plt.plot(x, proportion[1], marker='v', c='r', label='第二产业占比')
+    plt.plot(x, proportion[2], marker='*', c='g', label='第三产业占比')
+    if index == 1:
+        plt.plot(x, proportion[3], marker='+', c='brown', label='居民生活占比')
+    # 在右侧显示图例
+    plt.legend(loc="upper right")
+
+    plt.title(titles[index])
+    plt.legend()
+    plt.savefig(os.path.join(figure_save_path, titles[index]))
     plt.show()
 
 
@@ -205,6 +250,8 @@ if __name__ == '__main__':
     plot_population(GDP_by_person, (GDP_by_person - pre_GDP_by_person) / pre_GDP_by_person,
                     f_yoy(GDP_by_person), 2)
 
+    # 各产业占比
+
     energy = read_energy(df_economy_and_energy).astype(np.float64)
     # 补充2009年能源消费量？？？
     pre_energy = np.insert(energy[0][:-1], 0, 0)
@@ -251,3 +298,7 @@ if __name__ == '__main__':
     pre_carbon_intensity = np.insert(carbon_intensity[:-1], 0, 0 / 34471.70)
     plot_population(carbon_intensity, (carbon_intensity - pre_carbon_intensity) / pre_carbon_intensity,
                     f_yoy(carbon_intensity), 7)
+
+    plot_proportion_of_industry(np.array([population_and_GDP[2], population_and_GDP[3], population_and_GDP[6]]), 0)
+    plot_proportion_of_industry(
+        np.array([carbon_emission[1], carbon_emission[2], carbon_emission[3], carbon_emission[6]]), 1)
