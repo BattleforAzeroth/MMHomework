@@ -22,10 +22,12 @@ def read_population_and_GDP(df):
 def plot_population(population, rate, index):
     rate *= 100
     x = range(2010, 2021)
-    titles = ['常驻人口及增长率', 'GDP及增长率', '人均GDP及增长率', '能源消费量总量', '碳排放量总量']
-    labels = ['常驻人口', 'GDP', '人均GDP', '能源消费量', '碳排放量']
-    left_labels = ['常驻人口（万人）', 'GDP（亿元）', '人均GDP（万元）', '能源消费量（万tce）', '碳排放量（万tCO2）']
-    right_labels = ['常驻人口增长率（%）', 'GDP增长率（%）', '人均GDP增长率（%）', '能源消费量增长率（%）', '碳排放量（%）']
+    titles = ['常驻人口及增长率', 'GDP及增长率', '人均GDP及增长率', '能源消费量总量', '碳排放量总量', '人均碳排放量']
+    labels = ['常驻人口', 'GDP', '人均GDP', '能源消费量', '碳排放量', '人均碳排放量']
+    left_labels = ['常驻人口（万人）', 'GDP（亿元）', '人均GDP（万元）', '能源消费量（万tce）', '碳排放量（万tCO2）',
+                   '人均碳排放量（tCO2）']
+    right_labels = ['常驻人口增长率（%）', 'GDP增长率（%）', '人均GDP增长率（%）', '能源消费量增长率（%）', '碳排放量增长率（%）',
+                    '人均碳排放量增长率（%）']
 
     # 画柱状图
     plt.bar(x, population, label=labels[index], color='pink')
@@ -223,3 +225,8 @@ if __name__ == '__main__':
 
     plot_population(carbon_emission[0],
                     (carbon_emission[0].astype(np.float64) - pre_carbon_emission) / pre_carbon_emission, 4)
+
+    carbon_emission_by_person = carbon_emission[0].astype(np.float64) / population_and_GDP[0].astype(np.float64)
+    pre_carbon_emission_by_person = np.insert(carbon_emission_by_person[:-1], 0, 0 / 7810.27)
+    plot_population(carbon_emission_by_person, (carbon_emission_by_person - pre_carbon_emission_by_person)
+                    / pre_carbon_emission_by_person, 5)
