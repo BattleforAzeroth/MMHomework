@@ -24,12 +24,13 @@ def plot_population(population, qoq, yoy, index):
     yoy *= 100
     x = range(2010, 2021)
     x2 = range(2016, 2021)
-    titles = ['常驻人口及增长率', 'GDP及增长率', '人均GDP及增长率', '能源消费量总量', '碳排放量总量', '人均碳排放量']
-    labels = ['常驻人口', 'GDP', '人均GDP', '能源消费量', '碳排放量', '人均碳排放量']
+    titles = ['常驻人口及增长率', 'GDP及增长率', '人均GDP及增长率', '能源消费量总量及增长率', '碳排放量总量及增长率',
+              '人均碳排放量及增长率', '能源消费强度及增长率', '碳排放强度及增长率']
+    labels = ['常驻人口', 'GDP', '人均GDP', '能源消费量', '碳排放量', '人均碳排放量', '能源消费强度', '碳排放强度']
     left_labels = ['常驻人口（万人）', 'GDP（亿元）', '人均GDP（万元）', '能源消费量（万tce）', '碳排放量（万tCO2）',
-                   '人均碳排放量（tCO2）']
+                   '人均碳排放量（tCO2）', '能源消费强度（tce/万元）', '碳排放强度（tCO2/万元）']
     right_labels = ['常驻人口增长率（%）', 'GDP增长率（%）', '人均GDP增长率（%）', '能源消费量增长率（%）', '碳排放量增长率（%）',
-                    '人均碳排放量增长率（%）']
+                    '人均碳排放量增长率（%）', '能源消费强度增长率（%）', '碳排放强度增长率（%）']
 
     # 画柱状图
     plt.bar(x, population, label=labels[index], color='pink')
@@ -179,6 +180,8 @@ def read_carbon_emission(df):
     return df.values[:7, 5:16]
 
 
+f_yoy = lambda x: (x[6:] - x[1:6]) / x[1:6]
+
 if __name__ == '__main__':
     plt.rcParams['font.sans-serif'] = ['FangSong']
     plt.rcParams['axes.unicode_minus'] = False
@@ -190,23 +193,22 @@ if __name__ == '__main__':
     # 补充2009年常驻人口7810.27万人
     pre_population = np.insert(population_and_GDP[0][:-1], 0, 7810.27)
     plot_population(population_and_GDP[0], (population_and_GDP[0] - pre_population) / pre_population,
-                    (population_and_GDP[0][6:] - population_and_GDP[0][1:6]) / population_and_GDP[0][1:6], 0)
+                    f_yoy(population_and_GDP[0]), 0)
 
     # 补充2009年DGP总量34471.70亿元
     pre_GDP = np.insert(population_and_GDP[1][:-1], 0, 34471.70)
     plot_population(population_and_GDP[1], (population_and_GDP[1] - pre_GDP) / pre_GDP,
-                    (population_and_GDP[1][6:] - population_and_GDP[1][1:6]) / population_and_GDP[1][1:6], 1)
+                    f_yoy(population_and_GDP[1]), 1)
 
     GDP_by_person = population_and_GDP[1].astype(np.float64) / population_and_GDP[0].astype(np.float64)
     pre_GDP_by_person = np.insert(GDP_by_person[:-1], 0, 34471.70 / 7810.27)
     plot_population(GDP_by_person, (GDP_by_person - pre_GDP_by_person) / pre_GDP_by_person,
-                    (GDP_by_person[6:] - GDP_by_person[1:6]) / GDP_by_person[1:6], 2)
+                    f_yoy(GDP_by_person), 2)
 
     energy = read_energy(df_economy_and_energy).astype(np.float64)
     # 补充2009年能源消费量？？？
     pre_energy = np.insert(energy[0][:-1], 0, 0)
-    plot_population(energy[0], (energy[0] - pre_energy) / pre_energy, (energy[0][6:] - energy[0][1:6]) / energy[0][1:6],
-                    3)
+    plot_population(energy[0], (energy[0] - pre_energy) / pre_energy, f_yoy(energy[0]), 3)
 
     plot_economy_structure(population_and_GDP, '地区生产总值结构变化趋势')
 
@@ -231,11 +233,21 @@ if __name__ == '__main__':
     pre_carbon_emission = np.insert(carbon_emission[0][:-1], 0, 0)
 
     plot_population(carbon_emission[0], (carbon_emission[0] - pre_carbon_emission) / pre_carbon_emission,
-                    (carbon_emission[0][6:] - carbon_emission[0][1:6]) / carbon_emission[0][1:6], 4)
+                    f_yoy(carbon_emission[0]), 4)
 
-    carbon_emission_by_person = carbon_emission[0].astype(np.float64) / population_and_GDP[0].astype(np.float64)
+    carbon_emission_by_person = carbon_emission[0] / population_and_GDP[0]
     pre_carbon_emission_by_person = np.insert(carbon_emission_by_person[:-1], 0, 0 / 7810.27)
     plot_population(carbon_emission_by_person, (carbon_emission_by_person - pre_carbon_emission_by_person)
-                    / pre_carbon_emission_by_person,
-                    (carbon_emission_by_person[6:] - carbon_emission_by_person[1:6]) / carbon_emission_by_person[1:6],
-                    5)
+                    / pre_carbon_emission_by_person, f_yoy(carbon_emission_by_person), 5)
+
+    # 能源消费强度=能源消费量/GDP
+    energy_intensity = energy[0] / population_and_GDP[1]
+    pre_energy_intensity = np.insert(energy_intensity[:-1], 0, 0 / 34471.70)
+    plot_population(energy_intensity, (energy_intensity - pre_energy_intensity) / pre_energy_intensity,
+                    f_yoy(energy_intensity), 6)
+
+    # 碳排放强度=碳排放量/GDP
+    carbon_intensity = carbon_emission[0] / population_and_GDP[1]
+    pre_carbon_intensity = np.insert(carbon_intensity[:-1], 0, 0 / 34471.70)
+    plot_population(carbon_intensity, (carbon_intensity - pre_carbon_intensity) / pre_carbon_intensity,
+                    f_yoy(carbon_intensity), 7)
