@@ -22,17 +22,17 @@ def read_population_and_GDP(df):
 def plot_population(population, rate, index):
     rate *= 100
     x = range(2010, 2021)
-    titles = ['常驻人口及增长率', 'GDP及增长率', '人均GDP及增长率']
-    labels = ['常驻人口', 'GDP', '人均GDP']
-    left_labels = ['常驻人口（万人）', 'GDP（亿元）', '人均GDP（万元）']
-    right_labels = ['常驻人口增长率（%）', 'GDP增长率（%）', '人均GDP增长率（%）']
+    titles = ['常驻人口及增长率', 'GDP及增长率', '人均GDP及增长率', '能源消费量总量']
+    labels = ['常驻人口', 'GDP', '人均GDP', '能源消费量']
+    left_labels = ['常驻人口（万人）', 'GDP（亿元）', '人均GDP（万元）', '能源消费量（万tce）']
+    right_labels = ['常驻人口增长率（%）', 'GDP增长率（%）', '人均GDP增长率（%）', '能源消费量增长率（%）']
 
     # 画柱状图
     plt.bar(x, population, label=labels[index], color='pink')
     plt.xlabel('年份')
     plt.ylabel(left_labels[index])
     ax = plt.gca()
-    ax.set_ylim([0., 1.5 * max(population)])
+    ax.set_ylim([min(0., min(population)), 1.4 * max(population)])
     ax.xaxis.set_major_locator(plt.MultipleLocator(1))  # x轴刻度间隔设为1
     # 在左侧显示图例
     plt.legend(loc="upper left")
@@ -43,8 +43,9 @@ def plot_population(population, rate, index):
     ax2 = plt.twinx()
     ax2.set_ylabel(right_labels[index])
     # 设置坐标轴范围
-    ax2.set_ylim([0., 2 * max(rate)])
-    plt.plot(x, rate, marker='.', c='r', label='增长率')
+    mask = np.ma.masked_invalid(rate)
+    ax2.set_ylim([min(0., 1.4 * np.min(mask)), 2 * np.max(mask)])
+    plt.plot(x, mask, marker='.', c='r', label='增长率')
     # 显示数字
     for a, b in zip(x, rate):
         plt.text(a, b, round(b, 2), ha='center', va='bottom', fontsize=8)
@@ -92,6 +93,12 @@ def plot_economy_structure(economies, name):
     fig.subplots_adjust(right=0.75)
     plt.savefig(os.path.join(figure_save_path, name))
     plt.show()
+
+
+# 读取能源消耗量数据
+# 数据来自《经济与能源》11-22行
+def read_energy(df):
+    return df.values[9:21, 5:16]
 
 
 # 读取能耗品种结构数据
@@ -166,14 +173,6 @@ if __name__ == '__main__':
     df_economy_and_energy = read_sheet(file_path, '经济与能源')  # 表《经济与能源》中的数据
     df_carbon_emission = read_sheet(file_path, '碳排放')  # 表《碳排放》中的数据
 
-    energy_consumption_variety_title = ['煤炭消费量及子项变化趋势', '油品消费量及子项变化趋势',
-                                        '天然气消费量及子项变化趋势', '新能源消费量变化趋势']
-    energy_consumption_title = ['第一产业（农林）能耗结构变化趋势', '第二产业能耗结构变化趋势',
-                                '能源供应部门能耗结构变化趋势',
-                                '工业消费部门能耗结构变化趋势', '第三产业能耗结构变化趋势',
-                                '交通消费部门能耗结构变化趋势',
-                                '建筑消费部门能耗结构变化趋势', '居民生活能耗结构变化趋势']
-
     population_and_GDP = read_population_and_GDP(df_economy_and_energy)
 
     # 补充2009年常驻人口7810.27万人
@@ -189,7 +188,22 @@ if __name__ == '__main__':
     pre_GDP_by_person = np.insert(GDP_by_person[:-1], 0, 34471.70 / 7810.27)
     plot_population(GDP_by_person, (GDP_by_person - pre_GDP_by_person) / pre_GDP_by_person, 2)
 
+    energy = read_energy(df_economy_and_energy)
+
+    # 补充2009年能源消费量？？？
+    pre_energy = np.insert(energy[0][:-1].astype(np.float64), 0, 0)
+
+    plot_population(energy[0], (energy[0].astype(np.float64) - pre_energy) / pre_energy, 3)
+
     plot_economy_structure(population_and_GDP, '地区生产总值结构变化趋势')
+
+    energy_consumption_variety_title = ['煤炭消费量及子项变化趋势', '油品消费量及子项变化趋势',
+                                        '天然气消费量及子项变化趋势', '新能源消费量变化趋势']
+    energy_consumption_title = ['第一产业（农林）能耗结构变化趋势', '第二产业能耗结构变化趋势',
+                                '能源供应部门能耗结构变化趋势',
+                                '工业消费部门能耗结构变化趋势', '第三产业能耗结构变化趋势',
+                                '交通消费部门能耗结构变化趋势',
+                                '建筑消费部门能耗结构变化趋势', '居民生活能耗结构变化趋势']
 
     energy_consumption_variety = read_energy_consumption_variety_structure(df_economy_and_energy)
     for i, consumption in enumerate(energy_consumption_variety):
