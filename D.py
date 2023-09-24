@@ -22,10 +22,10 @@ def read_population_and_GDP(df):
 def plot_population(population, rate, index):
     rate *= 100
     x = range(2010, 2021)
-    titles = ['常驻人口及增长率', 'GDP及增长率', '人均GDP及增长率', '能源消费量总量']
-    labels = ['常驻人口', 'GDP', '人均GDP', '能源消费量']
-    left_labels = ['常驻人口（万人）', 'GDP（亿元）', '人均GDP（万元）', '能源消费量（万tce）']
-    right_labels = ['常驻人口增长率（%）', 'GDP增长率（%）', '人均GDP增长率（%）', '能源消费量增长率（%）']
+    titles = ['常驻人口及增长率', 'GDP及增长率', '人均GDP及增长率', '能源消费量总量', '碳排放量总量']
+    labels = ['常驻人口', 'GDP', '人均GDP', '能源消费量', '碳排放量']
+    left_labels = ['常驻人口（万人）', 'GDP（亿元）', '人均GDP（万元）', '能源消费量（万tce）', '碳排放量（万tCO2）']
+    right_labels = ['常驻人口增长率（%）', 'GDP增长率（%）', '人均GDP增长率（%）', '能源消费量增长率（%）', '碳排放量（%）']
 
     # 画柱状图
     plt.bar(x, population, label=labels[index], color='pink')
@@ -166,6 +166,12 @@ def plot_structure_of_consumption(consumption, name):
     plt.show()
 
 
+# 读取碳排放量数据
+# 数据来自《碳排放》2-8行
+def read_carbon_emission(df):
+    return df.values[:7, 5:16]
+
+
 if __name__ == '__main__':
     plt.rcParams['font.sans-serif'] = ['FangSong']
     plt.rcParams['axes.unicode_minus'] = False
@@ -174,7 +180,6 @@ if __name__ == '__main__':
     df_carbon_emission = read_sheet(file_path, '碳排放')  # 表《碳排放》中的数据
 
     population_and_GDP = read_population_and_GDP(df_economy_and_energy)
-
     # 补充2009年常驻人口7810.27万人
     pre_population = np.insert(population_and_GDP[0][:-1].astype(np.float64), 0, 7810.27)
     plot_population(population_and_GDP[0], (population_and_GDP[0].astype(np.float64) - pre_population) / pre_population,
@@ -189,7 +194,6 @@ if __name__ == '__main__':
     plot_population(GDP_by_person, (GDP_by_person - pre_GDP_by_person) / pre_GDP_by_person, 2)
 
     energy = read_energy(df_economy_and_energy)
-
     # 补充2009年能源消费量？？？
     pre_energy = np.insert(energy[0][:-1].astype(np.float64), 0, 0)
 
@@ -212,3 +216,10 @@ if __name__ == '__main__':
     energy_consumption_structure = read_structure_of_consumption(df_economy_and_energy)
     for i, consumption in enumerate(energy_consumption_structure):
         plot_structure_of_consumption(consumption, energy_consumption_title[i])
+
+    carbon_emission = read_carbon_emission(df_carbon_emission)
+    # 补充2009年碳排放量？？？
+    pre_carbon_emission = np.insert(carbon_emission[0][:-1].astype(np.float64), 0, 0)
+
+    plot_population(carbon_emission[0],
+                    (carbon_emission[0].astype(np.float64) - pre_carbon_emission) / pre_carbon_emission, 4)
