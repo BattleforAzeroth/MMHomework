@@ -49,20 +49,28 @@ def plot_population(population, qoq, yoy, index):
     ax2.set_ylabel(right_labels[index])
     # 设置坐标轴范围
     mask = np.ma.masked_invalid(qoq)
+
     ax2.set_ylim(min(0., 1.4 * np.min(mask), 1.4 * np.min(yoy)), max(2 * np.max(mask), 2 * np.max(yoy)))
     plt.plot(x, mask, marker='.', c='r', label='环比增长率')
     plt.plot(x2, yoy, marker='v', c='b', label='同比增长率')
+
+    # 只有环比增长率
+    # ax2.set_ylim(min(0., 1.4 * np.min(mask)), 2 * np.max(mask))
+    # plt.plot(x, mask, marker='.', c='r', label='增长率')
+
     # 显示数字
     for a, b in zip(x, qoq):
         plt.text(a, b, round(b, 2), ha='center', va='bottom', fontsize=8)
     for a, b in zip(x2, yoy):
         plt.text(a, b + 0.1, round(b, 2), ha='center', va='bottom', fontsize=8)
+
     # 在右侧显示图例
     plt.legend(loc="upper right")
 
     plt.title(titles[index])
     plt.legend()
     plt.savefig(os.path.join(figure_save_path, titles[index]))
+    # plt.savefig(os.path.join(figure_save_path, 'qoq only', titles[index]))
     plt.show()
 
 
